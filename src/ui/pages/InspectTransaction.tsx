@@ -5,7 +5,7 @@ import { rpc } from '../rpc';
 
 const connection = new Connection('https://global.rpc-public.hellomoon.io/', 'confirmed');
 
-const EXPLORER_INSPECT_BASE_URL = 'https://explorer.solana.com/tx/inspector?signatures='
+const EXPLORER_INSPECT_BASE_URL = 'https://explorer.solana.com/tx/inspector?signatures=';
 
 export const InspectTransaction: FC = () => {
   const [transaction, setTransaction] = useState<Uint8Array>();
@@ -48,43 +48,76 @@ export const InspectTransaction: FC = () => {
   }, [versionedTransaction, retrySimulation]);
 
   if (!transaction || !versionedTransaction) {
-    return <div>No Transaction</div>;
-  }
-
-  return (
-    <div>
-      Transaction {transaction.length} bytes
-      <div>
-        {/* This doesn't work */}
-        {/* <a href={`${EXPLORER_INSPECT_BASE_URL}${urlEncodedTransaction}`} target="_blank" rel="noopener noreferrer">
-          Open in explorer
-        </a> */}
-        <button
-          onClick={async () => {
-            await navigator.clipboard.writeText(Buffer.from(transaction).toString('base64'));
-          }}
-        >
-          Copy to clipboard
-        </button>
+    return (
+      <div className="bg-slate-900 text-card-foreground shadow-sm flex flex-col space-y-6 p-6 min-h-screen">
+        <h1 className="text-2xl font-semibold leading-none tracking-tight text-center">No Transaction</h1>
         <button
           onClick={async () => {
             window.close();
           }}
+          className="!mt-auto inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
         >
           Close
         </button>
       </div>
-      <div>
-        <label>Retry simulation (5s)</label>
-        <input type="checkbox" checked={retrySimulation} onChange={(e) => setRetrySimulation(!retrySimulation)} />
+    );
+  }
+
+  return (
+    <div className="bg-slate-900 text-card-foreground shadow-sm flex flex-col space-y-10 p-6 min-h-screen">
+      <h1 className="text-2xl font-semibold leading-none tracking-tight text-center">
+        Transaction {transaction.length} bytes
+      </h1>
+      <div className="sm:grid flex flex-col-reverse sm:grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={async () => {
+            window.close();
+          }}
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+        >
+          Close
+        </button>
+        <button
+          type="button"
+          onClick={async () => {
+            await navigator.clipboard.writeText(Buffer.from(transaction).toString('base64'));
+          }}
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+        >
+          Copy to clipboard
+        </button>
+      </div>
+      <div className="flex items-center space-x-2 justify-center">
+        <input
+          id="simulate"
+          type="checkbox"
+          checked={retrySimulation}
+          onChange={(e) => setRetrySimulation(!retrySimulation)}
+          className="h-4 w-4 rounded border-gray-300 text-slate-600 focus:ring-slate-600"
+        />
+        <label
+          htmlFor="simutlate"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
+          Retry simulation (5s)
+        </label>
       </div>
       {simulationResult && (
-        <div>
-          Status: {simulationResult.value.err?.toString() ?? 'Success'} Slot: {simulationResult.context.slot}
-          <div style={{ overflow: 'hidden', maxWidth: '600px' }}>
-            {simulationResult.value.logs?.map((log, index) => <p key={index}>{log}</p>)}
+        <details className="overflow-hidden">
+          <summary className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-center">
+            Status: {simulationResult.value.err?.toString() ?? 'Success'} Slot: {simulationResult.context.slot}
+          </summary>
+          <div className="flex justify-center pt-6">
+            <div className="font-mono space-y-2 overflow-auto max-h-[200px]">
+              {simulationResult.value.logs?.map((log, index) => (
+                <p key={index} className="text-ellipsis overflow-hidden whitespace-nowrap">
+                  {log}
+                </p>
+              ))}
+            </div>
           </div>
-        </div>
+        </details>
       )}
     </div>
   );
