@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Sherlock Wallet",
+  "description": "",
+  "version": "0.0.0",
+  "action": {
+    "default_popup": "ui/popup.html"
+  },
+  "background": {
+    "service_worker": "background/index.ts",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "js": ["content/index.ts"]
+    }
+  ],
+  "permissions": ["storage"],
+  "host_permissions": []
+}
