@@ -10,18 +10,31 @@ Most dapps check your address and balances before allowing you to do actions. Fo
 
 With this system, you can pretend to be any given address, have some tokens or even some state in a program to trigger the same flow.
 
-Features:
+# Installation
+
+To use the Sherlock Wallet, you need to have Node.js and pnpm installed
+
+`pnpm i`
+
+`pnpm start`
+
+Then in a Chrome/Brave, Go to "More tools" > "Extensions." Enable "Developer mode" by toggling the switch on the top right corner of the page. Click on "Load unpacked" button, select the folder `dist` in this repo.
+
+# Features
+
 - Use any Solana wallet on any wallet-standard compatible dApp to start inspecting
 - Add to address book
 - Transaction dump, inspection and simulation. Linking to the explorer
 
-Use cases:
+# Use cases
+
 - Investigate user specific bugs, by reproducing their input using their address
 - Reverse engineer dApps
 - Test dApp with a wallet holding large token amounts
 
-Risks:
+# Risks
+
 - Too much fun
 
-Alternatives:
-https://github.com/everlastingsong/pubkey-sollet# sherlock-wallet
+# Alternatives
+https://github.com/everlastingsong/pubkey-sollet A slim inspection wallet through sollet wallet adapter
