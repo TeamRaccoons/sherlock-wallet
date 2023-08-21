@@ -2,10 +2,11 @@ import { Connection, RpcResponseAndContext, SimulatedTransactionResponse, Versio
 import type { FC } from 'react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { rpc } from '../rpc';
+import base58 from 'bs58';
 
 const connection = new Connection('https://global.rpc-public.hellomoon.io/', 'confirmed');
 
-const EXPLORER_INSPECT_BASE_URL = 'https://explorer.solana.com/tx/inspector?signatures=';
+const EXPLORER_INSPECT_BASE_URL = 'https://explorer.solana.com/tx/inspector';
 
 export const InspectTransaction: FC = () => {
   const [transaction, setTransaction] = useState<Uint8Array>();
@@ -18,10 +19,14 @@ export const InspectTransaction: FC = () => {
   }, [transaction]);
   console.log(transaction);
 
-  const urlEncodedTransaction = useMemo(() => {
-    if (!transaction) return;
-    return encodeURIComponent(Buffer.from(transaction).toString('base64'));
-  }, [transaction]);
+  const explorerInspectUrl = useMemo(() => {
+    if (!versionedTransaction) return;
+    const url = new URL(EXPLORER_INSPECT_BASE_URL);
+    const message = encodeURIComponent(Buffer.from(versionedTransaction.message.serialize()).toString('base64'));
+    url.searchParams.append('signatures', encodeURIComponent(JSON.stringify(versionedTransaction.signatures.map((sig) => base58.encode(sig)))));
+    url.searchParams.append('message', message);
+    return url.toString();
+  }, [versionedTransaction]);
 
   useEffect(() => {
     rpc.exposeMethod('inspectTransaction', async (params) => {
@@ -78,6 +83,11 @@ export const InspectTransaction: FC = () => {
         >
           Close
         </button>
+        <a href={explorerInspectUrl ?? ""} target="_blank" rel="noopener noreferrer"
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+        >
+          Open in explorer
+        </a>
         <button
           type="button"
           onClick={async () => {
