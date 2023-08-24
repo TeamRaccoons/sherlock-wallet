@@ -12,13 +12,13 @@ With this system, you can pretend to be any given address, have some tokens or e
 
 # Installation
 
-To use the Sherlock Wallet, you need to have Node.js and pnpm installed
+To use the Sherlock Wallet, you need to have Node.js and pnpm installed. Then setup this repo with
 
 `pnpm i`
 
 `pnpm start`
 
-Then in a Chrome/Brave, Go to "More tools" > "Extensions." Enable "Developer mode" by toggling the switch on the top right corner of the page. Click on "Load unpacked" button, select the folder `dist` in this repo.
+In Chrome/Brave, Go to "More tools" > "Extensions." Enable "Developer mode" by toggling the switch on the top right corner of the page. Click on "Load unpacked" button, select the `dist` folder generated in this repo.
 
 # Features
 

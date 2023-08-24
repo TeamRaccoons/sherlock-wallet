@@ -12,8 +12,8 @@
     "lint": "prettier --check '{*,**/*}.{ts,tsx,js,jsx,json}' && eslint ."
   },
   "dependencies": {
-    "@solana/wallet-standard": "1.0.2",
-    "@solana/web3.js": "^1.66.2",
+    "@solana/wallet-standard": "1.1.1",
+    "@solana/web3.js": "^1.78.4",
     "@tailwindcss/forms": "^0.5.4",
     "@wallet-standard/core": "1.0.3",
     "bip39": "^3.0.4",
