@@ -9,6 +9,8 @@ import {
 import type {
   StandardConnectFeature,
   StandardConnectMethod,
+  StandardDisconnectFeature,
+  StandardDisconnectMethod,
   StandardEventsFeature,
   StandardEventsListeners,
   StandardEventsNames,
@@ -76,11 +78,15 @@ export class SherlockWallet implements Wallet {
     return SOLANA_CHAINS;
   }
 
-  get features(): StandardConnectFeature & StandardEventsFeature & SolanaSignTransactionFeature {
+  get features(): StandardConnectFeature & StandardDisconnectFeature & StandardEventsFeature & SolanaSignTransactionFeature {
     return {
       'standard:connect': {
         version: '1.0.0',
         connect: this.#connect,
+      },
+      'standard:disconnect': {
+        version: '1.0.0',
+        disconnect: this.#disconnect,
       },
       'standard:events': {
         version: '1.0.0',
@@ -103,25 +109,28 @@ export class SherlockWallet implements Wallet {
       Object.freeze(this);
     }
 
+    rpc.exposeMethod('changeAccounts', async (params) => {
+      const accounts = params as { publicKey: Uint8Array }[];
+
+      this.#accounts = accounts.map(({ publicKey }) => 
+        new SolanaWalletAccount(publicKey)
+      );
+      this.#emit('change', { accounts: this.accounts });
+    });
+
     this.#rpc = rpc;
   }
 
   #connect: StandardConnectMethod = async ({ silent } = {}) => {
-    const accounts = (await this.#rpc.callMethod('connect')) as { network: string; publicKey: Uint8Array }[];
+    const accounts = (await this.#rpc.callMethod('connect')) as { publicKey: Uint8Array }[];
 
     if (accounts === null) {
       throw new Error('The user rejected the request.');
     }
 
-    this.#accounts = accounts.map((account: { network: string; publicKey: Uint8Array }) => {
-      const { network, publicKey } = account;
-      switch (network) {
-        case 'solana':
-          return new SolanaWalletAccount(publicKey);
-        default:
-          throw new Error(`Unknown network: '${network}'`);
-      }
-    });
+    this.#accounts = accounts.map(({ publicKey }) => 
+      new SolanaWalletAccount(publicKey)
+    );
 
     this.#emit('change', { accounts: this.accounts });
 
@@ -129,6 +138,10 @@ export class SherlockWallet implements Wallet {
       accounts: this.accounts,
     };
   };
+
+  #disconnect: StandardDisconnectMethod = async () => {
+    this.#accounts = [];
+  }
 
   #signTransaction: SolanaSignTransactionMethod = async (...inputs) => {
     const outputs: SolanaSignTransactionOutput[] = [];

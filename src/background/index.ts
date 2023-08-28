@@ -1,13 +1,15 @@
-import { PublicKey } from '@solana/web3.js';
 import type { RPC } from '../messages';
 import { CONTENT_PORT_NAME, createPortTransport, createRPC, POPUP_PORT_NAME } from '../messages';
 import { asyncState } from '../utils/asyncState';
 import { openPopup } from '../utils/popup';
-import { addAccount, getAccounts } from './storage';
+import { addAccount, getAccounts, removeAccount } from './storage';
 
 // This allows the background process to communicate with the popup in response
 // to content script requests.
 const asyncPopupRPC = asyncState<RPC>();
+const contentRPC = asyncState<RPC>();
+
+let connectedAccounts: {publicKey: Uint8Array}[] | undefined;
 
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
@@ -24,6 +26,16 @@ chrome.runtime.onConnect.addListener((port) => {
     rpc.exposeMethod('addAccount', async (params) => {
       const account = params[0];
       await addAccount(account);
+    });
+    rpc.exposeMethod('removeAccount', async (params) => {
+      const account = params[0];
+      await removeAccount(account);
+    });
+    rpc.exposeMethod('changeAccounts', async (params) => {
+      (await contentRPC.get()).callMethod('changeAccounts', params);
+    });
+    rpc.exposeMethod('connectedAccounts', async () => {
+      return connectedAccounts;
     });
 
     port.onDisconnect.addListener(() => {
@@ -46,6 +58,7 @@ chrome.runtime.onConnect.addListener((port) => {
 
       const response = await Promise.race([connectResult, popupClosed]);
 
+      connectedAccounts = response;
       closePopup();
 
       return response;
@@ -64,5 +77,7 @@ chrome.runtime.onConnect.addListener((port) => {
     port.onDisconnect.addListener(() => {
       rpc.end();
     });
+
+    contentRPC.set(rpc);
   }
 });
