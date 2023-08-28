@@ -10,7 +10,7 @@ let denyConnection: () => void;
 rpc.exposeMethod('connect', async () => {
   return new Promise((resolve) => {
     approveConnection = (accounts: Account[]) => {
-      resolve(accounts.map(({ address }) => ({ network: 'solana', publicKey: address.toBytes() })));
+      resolve(accounts.map(({ address }) => ({ publicKey: address.toBytes() })));
     };
     denyConnection = () => {
       resolve(null);
@@ -19,7 +19,7 @@ rpc.exposeMethod('connect', async () => {
 });
 
 export const ApproveConnection: FC = () => {
-  const accounts = useAccounts();
+  const { accounts } = useAccounts();
 
   const [selectedAccounts, setSelectedAccounts] = useState(new Map<string, Account>());
   const hasSelectedAccounts = selectedAccounts.size > 0;

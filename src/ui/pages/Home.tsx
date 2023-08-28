@@ -1,31 +1,50 @@
 import type { FC } from 'react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAccounts } from '../hooks/useAccounts';
-import { rpc } from '../rpc';
 import { useForm } from 'react-hook-form';
 import { PublicKey } from '@solana/web3.js';
+import { rpc } from '../rpc';
 
 type AddAccount = { label: string; address: string };
 
 export const Home: FC = () => {
-  const accounts = useAccounts();
+  const {accounts, addAccount, removeAccount, changeConnectedAccount, connectedAddress} = useAccounts();
   const {
     register,
     handleSubmit,
     formState: { isValid, errors },
+    reset,
   } = useForm<AddAccount>();
 
   const onSubmit = async (data: AddAccount) => {
     console.log(data);
-    await rpc.callMethod('addAccount', [data]);
+    addAccount(data)
+    reset();
   };
+
   return (
     <div className="bg-slate-900 text-card-foreground shadow-sm flex flex-col space-y-6 p-6">
       <h1 className="text-2xl font-semibold leading-none tracking-tight text-center">Sherlock wallet</h1>
       <div>
         {accounts.map((account) => (
           <div className="space-y-1" key={account.address.toBase58()}>
-            <h4 className="text-sm font-medium leading-none">{account.label}</h4>
+            <input
+              type="radio"
+              name="connected-address"
+              value={account.address.toBase58()}
+              checked={account.address.toBase58() === connectedAddress}
+              onChange={async (e) => {
+                changeConnectedAccount(account);
+              }}
+              disabled={!connectedAddress}
+            />
+            <h4 className="text-sm font-medium leading-none">{account.label}{' '}
+              <button onClick={() => {
+                  removeAccount({label: account.label, address: account.address.toBase58()});
+                }} 
+                style={{color: 'red'}}
+              >X</button>
+            </h4>
             <p className="text-sm text-muted-foreground">
               <code>{account.address.toBase58()}</code>
             </p>
@@ -46,6 +65,7 @@ export const Home: FC = () => {
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 id="label"
                 placeholder="Label"
+                autoComplete="off"
                 {...register('label', { required: true })}
               />
             </div>
@@ -56,7 +76,15 @@ export const Home: FC = () => {
               <input
                 id="address"
                 placeholder="Base58 Address"
-                {...register('address', { required: true })}
+                autoComplete="off"
+                {...register('address', { required: true, validate: (value: string) => {
+                  try {
+                    new PublicKey(value);
+                    return true;
+                  } catch(e) {
+                    return false;
+                  }
+                }})}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>

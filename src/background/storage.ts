@@ -17,3 +17,9 @@ export async function addAccount(account: SerializedAccount): Promise<void> {
   accounts.push(account);
   return chrome.storage.local.set({ [accountsKey]: accounts });
 }
+
+export async function removeAccount(account: SerializedAccount): Promise<void> {
+  const accounts = await getAccounts();
+  accounts.splice(accounts.findIndex((element) => element.address === account.address), 1);
+  return chrome.storage.local.set({ [accountsKey]: accounts });
+}
