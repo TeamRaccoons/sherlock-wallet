@@ -116,10 +116,12 @@ export const InspectTransaction: FC = () => {
       {simulationResult && (
         <details className="overflow-hidden">
           <summary className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-center">
-            Status: {simulationResult.value.err?.toString() ?? 'Success'} Slot: {simulationResult.context.slot}
+            Status: {simulationResult.value.err ? JSON.stringify(simulationResult.value.err, null) : 'Success'}
           </summary>
           <div className="flex justify-center pt-6">
-            <div className="font-mono space-y-2 overflow-auto max-h-[200px]">
+            <div className="font-mono space-y-2 overflow-auto">
+              <p>Slot: {simulationResult.context.slot}</p>
+              <p>Logs:</p>
               {simulationResult.value.logs?.map((log, index) => (
                 <p key={index} className="text-ellipsis overflow-hidden whitespace-nowrap">
                   {log}

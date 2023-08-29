@@ -147,10 +147,10 @@ export class SherlockWallet implements Wallet {
     const outputs: SolanaSignTransactionOutput[] = [];
     for (const { transaction, account, chain } of inputs) {
       if (!account.features.includes('solana:signTransaction')) throw new Error('invalid feature');
-
       if (chain && !this.chains.includes(chain as SolanaChain)) throw new Error('invalid chain');
 
       await this.#rpc.callMethod('signTransaction', [{ address: account.address, transaction }]);
+      throw Error('The user rejected the transaction');
     }
 
     return outputs;
