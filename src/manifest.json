@@ -18,10 +18,27 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*/*"],
-      "js": ["content/index.ts"]
+      "matches": [
+        "*://*/*"
+      ],
+      "js": [
+        "content/index.ts"
+      ]
     }
   ],
-  "permissions": ["storage"],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "chromeos": "Alt+Shift+X",
+        "linux": "Alt+Shift+X",
+        "mac": "Alt+Shift+X",
+        "windows": "Alt+Shift+X"
+      }
+    }
+  },
+  "permissions": [
+    "alarms",
+    "storage"
+  ],
   "host_permissions": []
 }

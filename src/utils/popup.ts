@@ -18,10 +18,12 @@ async function getPopupPosition() {
   return { left, top };
 }
 
-async function createPopup(page: string): Promise<chrome.windows.Window> {
+async function createPopup(page?: string): Promise<chrome.windows.Window> {
   const { left, top } = await getPopupPosition();
   const popupURL = new URL('../ui/popup.html', import.meta.url);
-  popupURL.searchParams.append('page', page);
+  if (page) {
+    popupURL.searchParams.append('page', page);
+  }
   return chrome.windows.create({
     url: popupURL.href,
     type: 'popup',
@@ -32,7 +34,7 @@ async function createPopup(page: string): Promise<chrome.windows.Window> {
   });
 }
 
-export async function openPopup(page: string) {
+export async function openPopup(page?: string) {
   const popup = await createPopup(page);
 
   let isOpen = true;

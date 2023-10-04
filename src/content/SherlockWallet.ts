@@ -50,11 +50,15 @@ export class SolanaWalletAccount implements WalletAccount {
   }
 }
 
+let instance = 0;
+
+console.log('ver 1.0.0');
 export class SherlockWallet implements Wallet {
   #name = 'Sherlock Wallet';
   // source https://www.svgrepo.com/svg/323223/sherlock-holmes, license https://www.svgrepo.com/page/licensing#CC%20Attribution, encoded to base64
   #icon = ICON;
   #accounts: SolanaWalletAccount[] = [];
+  instance: number = 0;
 
   readonly #listeners: {
     [E in StandardEventsNames]?: StandardEventsListeners[E][];
@@ -106,6 +110,8 @@ export class SherlockWallet implements Wallet {
 
   constructor(rpc: RPC) {
     if (new.target === SherlockWallet) {
+      this.instance = instance;
+      instance++;
       Object.freeze(this);
     }
 
@@ -122,6 +128,8 @@ export class SherlockWallet implements Wallet {
   }
 
   #connect: StandardConnectMethod = async ({ silent } = {}) => {
+    console.log('Connecting on instance:', this.instance);
+    console.log('c ver 1.0.0');
     const accounts = (await this.#rpc.callMethod('connect')) as { publicKey: Uint8Array }[];
 
     if (accounts === null) {
