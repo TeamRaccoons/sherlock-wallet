@@ -10,6 +10,11 @@ Most dapps check your address and balances before allowing you to do actions. Fo
 
 With this system, you can pretend to be any given address, have some tokens or even some state in a program to trigger the same flow.
 
+
+https://github.com/TeamRaccoons/sherlock-wallet/assets/808970/d1f71eda-5741-4ec7-93f7-1e21663ec262
+
+
+
 # Installation
 
 To use the Sherlock Wallet, you need to have Node.js and pnpm installed. Then setup this repo with
