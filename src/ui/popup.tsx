@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
+import Header from './components/Header';
 import { AppContext } from './context';
 import { ApproveConnection } from './pages/ApproveConnection';
 import { Home } from './pages/Home';
@@ -21,7 +22,10 @@ const Root: FC = () => {
   return (
     <StrictMode>
       <AppContext>
-        <Route />
+        <div className="w-[420px] bg-slate-900 text-card-foreground shadow-sm flex flex-col">
+          <Header />
+          <Route />
+        </div>
       </AppContext>
     </StrictMode>
   );
