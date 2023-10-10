@@ -23,12 +23,12 @@ export const ApproveConnection: FC = () => {
 
   // Pick first as default
   useEffect(() => {
-    changeConnectedAccount(accounts[0])
-  }, [accounts, changeConnectedAccount])
+    changeConnectedAccount(accounts[0]);
+  }, [accounts, changeConnectedAccount]);
 
   const selectedAccount = useMemo(
     () => accounts.find((account) => account.address.toBase58() === connectedAddress),
-    [connectedAddress]
+    [accounts, connectedAddress]
   );
 
   return (
@@ -47,8 +47,7 @@ export const ApproveConnection: FC = () => {
         <button
           type="button"
           onClick={() => {
-            console.log({ selectedAccount })
-            selectedAccount && approveConnection([selectedAccount])
+            selectedAccount && approveConnection([selectedAccount]);
           }}
           disabled={!connectedAddress}
           className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"

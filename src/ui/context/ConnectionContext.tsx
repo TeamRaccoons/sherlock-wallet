@@ -16,7 +16,6 @@ const DEFAULT_RPC = 'https://global.rpc.hellomoon.io/';
 
 export const ConnectionProvider: FC<{ children: NonNullable<ReactNode> }> = ({ children }) => {
   const [rpcUrl, setRPCUrl] = useLocalStorage<string>('Sherlock-RPC', DEFAULT_RPC);
-  console.log({rpcUrl})
   const connection = useMemo(() => new Connection(rpcUrl, 'confirmed'), [rpcUrl]);
 
   return (
