@@ -1,4 +1,4 @@
-const POPUP_WIDTH = 320;
+const POPUP_WIDTH = 420;
 const POPUP_HEIGHT = 560;
 
 async function getPopupPosition() {
