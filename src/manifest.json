@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Sherlock Wallet",
   "description": "",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "icons": {
     "16": "resources/icon16.png",
     "32": "resources/icon32.png",
