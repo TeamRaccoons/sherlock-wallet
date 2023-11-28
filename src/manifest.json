@@ -37,7 +37,6 @@
     }
   },
   "permissions": [
-    "alarms",
     "storage"
   ],
   "host_permissions": []
