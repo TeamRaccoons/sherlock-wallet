@@ -16,6 +16,7 @@ const InstantAddAccount: React.FC<{ approveConnection: (accounts: Account[]) => 
     handleSubmit,
     formState: { isValid, errors },
     reset,
+    watch,
   } = useForm<{ address: string }>();
 
   const onSubmit = async (data: { address: string }) => {
@@ -27,12 +28,9 @@ const InstantAddAccount: React.FC<{ approveConnection: (accounts: Account[]) => 
 
   const address = useWatch({ control, name: 'address' });
   useEffect(() => {
-    setTimeout(() => {
-      if (address && !errors.address) {
-        onSubmit({ address });
-      }
-    }, 0);
-  }, [address, errors]);
+    const subscription = watch(() => handleSubmit(onSubmit)());
+    return () => subscription.unsubscribe();
+  }, [handleSubmit, watch]);
 
   console.log(isValid, errors);
   return (
@@ -65,7 +63,7 @@ const InstantAddAccount: React.FC<{ approveConnection: (accounts: Account[]) => 
         </div>
       </div>
 
-      {address && !isValid && <span className='block pt-2 text-red-400'>{'Invalid address'}</span>}
+      {address && !isValid && <span className="block pt-2 text-red-400">{'Invalid address'}</span>}
     </form>
   );
 };
