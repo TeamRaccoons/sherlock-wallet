@@ -17,7 +17,6 @@ export const InspectTransaction: FC = () => {
     if (!transaction) return;
     return VersionedTransaction.deserialize(transaction);
   }, [transaction]);
-  console.log(transaction);
 
   const explorerInspectUrl = useMemo(() => {
     if (!versionedTransaction) return;
@@ -32,13 +31,17 @@ export const InspectTransaction: FC = () => {
   }, [versionedTransaction]);
 
   useEffect(() => {
-    rpc.exposeMethod('inspectTransaction', async (params) => {
-      const [{ address, transaction: tx }] = params;
-      setTransaction(tx);
-      setAddress(address);
-    });
+    (async () => {
+      try {
+        const txObject = await rpc.callMethod('getTransactionObject');
+        setTransaction(txObject.transaction);
+        setAddress(txObject.address);
+      } catch (error) {
+        console.log('@@', error);
+      }
+    })();
   }, []);
-  
+
   useEffect(() => {
     async function simulate() {
       if (!versionedTransaction || !connection) return;
@@ -63,6 +66,7 @@ export const InspectTransaction: FC = () => {
         <button
           onClick={async () => {
             window.close();
+            throw Error('The user rejected the transaction');
           }}
           className="!mt-auto inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
         >
@@ -125,7 +129,6 @@ export const InspectTransaction: FC = () => {
             <summary className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-center">
               Status: {simulationResult.value.err?.toString() ?? 'Success'} Slot: {simulationResult.context.slot}
             </summary>
-            
             <div className="flex justify-center mt-2 pb-6">
               <div className="font-mono space-y-2 overflow-auto max-h-[200px]">
                 {simulationResult.value.logs?.map((log, index) => (

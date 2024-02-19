@@ -36,7 +36,7 @@ export const ApproveConnection: FC = () => {
       <h1 className="text-2xl font-semibold leading-none tracking-tight text-center">Approve Connection</h1>
       <AvailableAccounts disableDelete />
 
-      <div className="sticky bottom-0 !mt-auto grid grid-cols-2 gap-2">
+      <div className="sticky bottom-0 !mt-auto pt-4 grid grid-cols-2 gap-2">
         <button
           type="button"
           onClick={denyConnection}
