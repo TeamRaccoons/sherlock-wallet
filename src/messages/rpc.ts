@@ -38,7 +38,6 @@ export function createRPC(transport: Transport): RPC {
         }
 
         transport.removeListener(handleResponse);
-
         resolve(response.result);
       };
       transport.addListener(handleResponse);

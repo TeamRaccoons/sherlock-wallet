@@ -1,3 +1,4 @@
+import { Transaction, VersionedTransaction } from '@solana/web3.js';
 import type { RPC } from '../messages';
 import { CONTENT_PORT_NAME, createPortTransport, createRPC, POPUP_PORT_NAME } from '../messages';
 import { asyncState } from '../utils/asyncState';
@@ -9,7 +10,11 @@ import { addAccount, getAccounts, removeAccount } from './storage';
 const asyncPopupRPC = asyncState<RPC>();
 const contentRPC = asyncState<RPC>();
 
-let connectedAccounts: {publicKey: Uint8Array}[] | undefined;
+let connectedAccounts: { publicKey: Uint8Array }[] | undefined;
+const txObject: { address: string | undefined; transaction: Transaction | VersionedTransaction | undefined } = {
+  address: undefined,
+  transaction: undefined,
+};
 
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
@@ -19,9 +24,9 @@ chrome.runtime.onInstalled.addListener((details) => {
   if (chrome && chrome?.runtime?.id) {
     // Keep alive for Manifest V3 service worker
     chrome.runtime.onInstalled.addListener(() => {
-      chrome.alarms.get("keep-alive", (a) => {
+      chrome.alarms.get('keep-alive', (a) => {
         if (!a) {
-          chrome.alarms.create("keep-alive", { periodInMinutes: 0.1 });
+          chrome.alarms.create('keep-alive', { periodInMinutes: 0.1 });
         }
       });
     });
@@ -60,6 +65,10 @@ chrome.runtime.onConnect.addListener((port) => {
       return connectedAccounts;
     });
 
+    rpc.exposeMethod('getTransactionObject', async () => {
+      return txObject;
+    });
+
     port.onDisconnect.addListener(() => {
       asyncPopupRPC.reset();
       rpc.end();
@@ -88,9 +97,11 @@ chrome.runtime.onConnect.addListener((port) => {
 
     rpc.exposeMethod('signTransaction', async (params) => {
       const { closePopup, popupClosed } = await openPopup('inspectTransaction');
-
       const popupRPC = await asyncPopupRPC.get();
-      await popupRPC.callMethod('inspectTransaction', params);
+
+      const [{ address, transaction: tx }] = params;
+      txObject.address = address;
+      txObject.transaction = tx;
 
       const response = await Promise.race([popupClosed]);
       closePopup();
