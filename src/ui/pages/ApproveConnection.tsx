@@ -4,6 +4,7 @@ import AvailableAccounts from '../components/AvailableAccounts';
 import { Account } from '../context/AccountsContext';
 import { useAccounts } from '../hooks/useAccounts';
 import { rpc } from '../rpc';
+import InstantAddAccount from '../components/InstantAddAccount';
 
 let approveConnection: (accounts: Account[]) => void;
 let denyConnection: () => void;
@@ -34,6 +35,7 @@ export const ApproveConnection: FC = () => {
   return (
     <div className="w-[420px] overflow-x-hidden min-h-screen bg-slate-900 text-card-foreground shadow-sm flex flex-col space-y-6 p-6">
       <h1 className="text-2xl font-semibold leading-none tracking-tight text-center">Approve Connection</h1>
+      <InstantAddAccount approveConnection={approveConnection} />
       <AvailableAccounts disableDelete />
 
       <div className="sticky bottom-0 !mt-auto pt-4 grid grid-cols-2 gap-2">

@@ -7,12 +7,18 @@ import { SerializedAccount } from '../../background/storage';
 export type Account = { label: string; address: PublicKey };
 
 export const AccountsContext = React.createContext<{
-  accounts: Account[],
-  connectedAddress: string | undefined,
-  addAccount: (account: SerializedAccount) => void,
-  removeAccount: (account: SerializedAccount) => void,
-  changeConnectedAccount: (account: Account) => void,
-}>({accounts: [], connectedAddress: undefined, addAccount: () => {}, removeAccount: () => {}, changeConnectedAccount: () => {}});
+  accounts: Account[];
+  connectedAddress: string | undefined;
+  addAccount: (account: SerializedAccount) => void;
+  removeAccount: (account: SerializedAccount) => void;
+  changeConnectedAccount: (account: Account) => void;
+}>({
+  accounts: [],
+  connectedAddress: undefined,
+  addAccount: () => {},
+  removeAccount: () => {},
+  changeConnectedAccount: () => {},
+});
 
 export const AccountsProvider: FC<{ children: NonNullable<ReactNode> }> = ({ children }) => {
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -28,9 +34,13 @@ export const AccountsProvider: FC<{ children: NonNullable<ReactNode> }> = ({ chi
   }, []);
 
   const addAccount = useCallback(async (account: SerializedAccount) => {
+    if (accounts.some((acc) => acc.address.toBase58() === account.address)) {
+      return;
+    }
+
     await rpc.callMethod('addAccount', [account]);
     updateAccounts();
-  }, []);
+  }, [accounts]);
 
   const removeAccount = useCallback(async (account: SerializedAccount) => {
     await rpc.callMethod('removeAccount', [account]);
@@ -40,12 +50,13 @@ export const AccountsProvider: FC<{ children: NonNullable<ReactNode> }> = ({ chi
   const updateConnectedAddress = useCallback(async () => {
     const connectedAccounts = await rpc.callMethod('connectedAccounts');
     if (connectedAccounts) {
-      setConnectedAddress(new PublicKey(connectedAccounts[0]?.publicKey).toBase58())
+      setConnectedAddress(new PublicKey(connectedAccounts[0]?.publicKey).toBase58());
     }
   }, []);
 
   const changeConnectedAccount = useCallback(async (account: Account) => {
-    rpc.callMethod('changeAccounts', [{publicKey: account.address.toBytes() }]);
+    if (!account) return;
+    rpc.callMethod('changeAccounts', [{ publicKey: account.address.toBytes() }]);
     setConnectedAddress(account.address.toBase58());
   }, []);
 
@@ -54,5 +65,9 @@ export const AccountsProvider: FC<{ children: NonNullable<ReactNode> }> = ({ chi
     updateConnectedAddress();
   }, []);
 
-  return <AccountsContext.Provider value={{accounts, addAccount, removeAccount, connectedAddress, changeConnectedAccount}}>{children}</AccountsContext.Provider>;
+  return (
+    <AccountsContext.Provider value={{ accounts, addAccount, removeAccount, connectedAddress, changeConnectedAccount }}>
+      {children}
+    </AccountsContext.Provider>
+  );
 };
