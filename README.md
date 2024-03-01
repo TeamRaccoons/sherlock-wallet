@@ -12,7 +12,10 @@ With this system, you can pretend to be any given address, have some tokens or e
 
 
 # Installation
+### Chrome extension store
+https://chromewebstore.google.com/detail/sherlock-wallet/fnkhhpcgjmehogcdgjihbfbbgcfmogmd
 
+### Or, locally
 To use the Sherlock Wallet, you need to have Node.js and pnpm installed. Then setup this repo with
 
 `pnpm i`
