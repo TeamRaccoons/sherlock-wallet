@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Sherlock Wallet",
   "description": "Impersonate any Solana address in dapps and inspect every transaction they ask you to sign: simulation, balance changes, Jupiter slippage, fees, decoded instructions.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "icons": {
     "16": "resources/icon16.png",
     "32": "resources/icon32.png",

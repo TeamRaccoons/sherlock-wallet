@@ -1,3 +1,5 @@
+import { BUNDLED_IDLS } from './idls';
+
 export const SYSTEM_PROGRAM = '11111111111111111111111111111111';
 export const COMPUTE_BUDGET_PROGRAM = 'ComputeBudget111111111111111111111111111111';
 export const TOKEN_PROGRAM = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
@@ -49,6 +51,7 @@ export const KNOWN_PROGRAMS: Record<string, string> = {
   '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P': 'Pump.fun',
   PhoeNiXZ8ByJGLkxNfZRnkUfjvmuYqLR89jjFHGqdXY: 'Phoenix',
   MNFSTqtC93rEfYHB6hF82sKdZpUDFWkViLByLd1k1Ms: 'Manifest',
+  ...Object.fromEntries(Object.entries(BUNDLED_IDLS).map(([id, { name }]) => [id, name])),
 };
 
 export const JITO_TIP_ACCOUNTS = new Set([

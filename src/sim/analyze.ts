@@ -73,6 +73,23 @@ export type Instr = {
   inner: Instr[];
 };
 
+// Jupiter Lend Vaults' one `operate` instruction deposits, withdraws, borrows and repays: the signs
+// of `new_col` and `new_debt` say which (i128::MIN means the whole position).
+const LEND_VAULTS = 'jupr81YtYssSyPt8jbnGuiWon5f6x9TcDEFxYe3Bdzi';
+const I128_MIN = -(1n << 127n);
+
+function describeLend(programId: string, decoded: DecodedInstruction | undefined) {
+  if (programId !== LEND_VAULTS || decoded?.name !== 'operate' || !decoded.args) return decoded;
+  const { new_col: col, new_debt: debt } = decoded.args as { new_col?: unknown; new_debt?: unknown };
+  if (typeof col !== 'bigint' || typeof debt !== 'bigint') return decoded;
+  const all = (v: bigint) => (v === I128_MIN ? ' all' : '');
+  const actions = [
+    col > 0n ? 'deposit' : col < 0n ? `withdraw${all(col)}` : '',
+    debt > 0n ? 'borrow' : debt < 0n ? `repay${all(debt)}` : '',
+  ].filter(Boolean);
+  return actions.length ? { ...decoded, name: `operate · ${actions.join(', ')}` } : decoded;
+}
+
 export type AssetDelta = { mint: string; decimals: number; pre: bigint; post: bigint; delta: bigint };
 export type OwnerChanges = { owner: string; assets: AssetDelta[] };
 
@@ -333,7 +350,7 @@ export async function analyze(input: AnalyzeInput): Promise<Analysis> {
       const event = decodeIdlEvent(idl, data);
       return { event, decoded: { name: event ? `emit ${event.name}` : 'emit event' } };
     }
-    return { decoded: decodeIdlInstruction(idl, data) };
+    return { decoded: describeLend(programId, decodeIdlInstruction(idl, data)) };
   };
 
   const parsedLogs = parseLogs(value.logs ?? []);

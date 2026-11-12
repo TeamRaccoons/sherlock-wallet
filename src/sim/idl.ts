@@ -1,6 +1,7 @@
 import { address, createAddressWithSeed, getProgramDerivedAddress } from '@solana/kit';
 import { Reader } from './borsh';
 import { cacheGet, cacheSet } from './cache';
+import { BUNDLED_IDLS } from './idls';
 import { getMultipleAccounts } from './rpc';
 
 // Anchor IDLs come in two shapes: the legacy one (< 0.30: camelCase, `publicKey`, `defined: "Name"`,
@@ -232,8 +233,37 @@ const IDL_TTL = 24 * 3600_000;
 const MISSING_TTL = 6 * 3600_000;
 const memory = new Map<string, NormalizedIdl | null>();
 
-// Fetches Anchor IDLs stored on-chain for the given programs. Programs without one map to null.
+const bundled = new Map<string, Promise<NormalizedIdl | null>>();
+
+function bundledIdl(programId: string): Promise<NormalizedIdl | null> {
+  const entry = BUNDLED_IDLS[programId];
+  if (!entry) return Promise.resolve(null);
+  if (!bundled.has(programId)) {
+    bundled.set(
+      programId,
+      entry
+        .load()
+        .then((m: any) => normalizeIdl(m.default ?? m, programId))
+        .catch(() => null)
+    );
+  }
+  return bundled.get(programId)!;
+}
+
+// IDLs for the given programs: the one stored on-chain, else one shipped with Sherlock (see
+// idls/index.ts). Programs with neither map to null.
 export async function fetchIdls(rpcUrl: string, programIds: string[]): Promise<Map<string, NormalizedIdl | null>> {
+  const result = await fetchOnChainIdls(rpcUrl, programIds).catch(() => new Map<string, NormalizedIdl | null>());
+  await Promise.all(
+    [...new Set(programIds)].map(async (id) => {
+      if (!result.get(id)) result.set(id, await bundledIdl(id));
+    })
+  );
+  return result;
+}
+
+// Fetches Anchor IDLs stored on-chain for the given programs. Programs without one map to null.
+async function fetchOnChainIdls(rpcUrl: string, programIds: string[]): Promise<Map<string, NormalizedIdl | null>> {
   const result = new Map<string, NormalizedIdl | null>();
   const toFetch: string[] = [];
   for (const id of new Set(programIds)) {

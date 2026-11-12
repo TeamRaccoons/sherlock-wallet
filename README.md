@@ -17,8 +17,8 @@ The Chrome Web Store has an older version without the inspector. Get this one pr
 
 ### Prebuilt
 
-1. Download [`sherlock-wallet-0.1.1.zip`](https://github.com/solwhitey/sherlock-wallet/releases/download/v0.1.1/sherlock-wallet-0.1.1.zip) from the [v0.1.1 release](https://github.com/solwhitey/sherlock-wallet/releases/tag/v0.1.1) and unzip it.
-2. In Chrome, open `chrome://extensions`, turn on **Developer mode** (top right), click **Load unpacked**, and select the unzipped **`sherlock-wallet-0.1.1`** folder.
+1. Download [`sherlock-wallet-0.1.2.zip`](https://github.com/solwhitey/sherlock-wallet/releases/download/v0.1.2/sherlock-wallet-0.1.2.zip) from the [v0.1.2 release](https://github.com/solwhitey/sherlock-wallet/releases/tag/v0.1.2) and unzip it.
+2. In Chrome, open `chrome://extensions`, turn on **Developer mode** (top right), click **Load unpacked**, and select the unzipped **`sherlock-wallet-0.1.2`** folder.
 
 ### From source
 
@@ -87,7 +87,7 @@ For development, `npx pnpm@10 start` rebuilds into `dist` on every change; load 
   - route plan and the hops actually simulated, per AMM
   - when the swap reverts on slippage, it is simulated again with the limit opened to show how far past it the route fills
   - a fresh quote for the same trade to compare against, and a chart of the simulated output over time
-- Instructions decoded from Anchor IDLs fetched on-chain (any program that publishes one), with inner instructions, events, per-instruction compute and account names
+- Instructions decoded from Anchor IDLs fetched on-chain (any program that publishes one), or bundled for programs that publish none (Jupiter Lend: Vaults, Earn, Liquidity, Flashloan, DEX, Oracle), with inner instructions, events, per-instruction compute and account names
 - Logs, accounts, raw base64, Explorer inspector link and a JSON report export
 - Request history: reopen and re-simulate any past request; paste any serialized transaction (base64 or base58) to inspect it as one of your addresses
 - Fork mode: the transaction runs in a Solana VM inside the extension (LiteSVM compiled to WebAssembly, loaded only when used), against live mainnet accounts plus balances you set ("give this wallet 1,000 USDC"). No backend or local process; needs Chrome 133+. Build notes in `docs/wasm-svm.md`
