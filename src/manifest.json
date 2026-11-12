@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Sherlock Wallet",
-  "description": "",
-  "version": "0.0.3",
+  "description": "Impersonate any Solana address in dapps and inspect every transaction they ask you to sign: simulation, balance changes, Jupiter slippage, fees, decoded instructions.",
+  "version": "0.1.2",
   "icons": {
     "16": "resources/icon16.png",
     "32": "resources/icon32.png",
@@ -10,7 +10,10 @@
     "128": "resources/icon128.png"
   },
   "action": {
-    "default_popup": "ui/popup.html"
+    "default_title": "Open Sherlock"
+  },
+  "side_panel": {
+    "default_path": "ui/popup.html"
   },
   "background": {
     "service_worker": "background/index.ts",
@@ -18,12 +21,8 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "*://*/*"
-      ],
-      "js": [
-        "content/index.ts"
-      ]
+      "matches": ["*://*/*"],
+      "js": ["content/index.ts"]
     }
   ],
   "commands": {
@@ -36,10 +35,9 @@
       }
     }
   },
-  "permissions": [
-    "alarms",
-    "storage"
-  ],
-  "host_permissions": [
-  ]
+  "permissions": ["storage", "sidePanel"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
+  "host_permissions": ["https://api.jup.ag/*", "http://127.0.0.1/*", "http://localhost/*"]
 }

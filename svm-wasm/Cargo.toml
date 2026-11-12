@@ -1,0 +1,42 @@
+[package]
+name = "svm-wasm"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+litesvm = { version = "=0.16.0", features = ["serde", "precompiles"] }
+agave-feature-set = { version = "4.2", features = ["agave-unstable-api"] }
+solana-account = "4"
+solana-address = "2"
+solana-clock = "3"
+solana-transaction = { version = "4", features = ["serde", "wincode"] }
+wincode = "0.5"
+solana-transaction-error = { version = "3", features = ["serde"] }
+solana-message = "4"
+bincode = "1"
+serde_json = "1"
+bs58 = "0.5"
+base64 = "0.22"
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+# No wasm-bindgen: randomness is never needed for a simulation, so both getrandom
+# generations get a deterministic custom backend (see src/lib.rs).
+getrandom_02 = { package = "getrandom", version = "0.2", features = ["custom"] }
+getrandom_03 = { package = "getrandom", version = "0.3" }
+# ed25519-dalek 1.0.1 (precompile) pulls rand 0.7 -> getrandom 0.1; never called when verifying.
+getrandom_01 = { package = "getrandom", version = "0.1", features = ["dummy"] }
+
+[patch.crates-io]
+# std::time::Instant::now() panics on wasm; this copy reads timings as zero there.
+solana-svm-measure = { path = "vendor/solana-svm-measure" }
+# Upstream verifies secp256r1 with OpenSSL (does not build for wasm64); this copy uses p256.
+agave-precompiles = { path = "vendor/agave-precompiles" }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1

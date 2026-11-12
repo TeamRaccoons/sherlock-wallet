@@ -18,3 +18,6 @@ out
 
 dist.crx
 dist.pem
+
+# Agent worktrees
+.claude/worktrees/

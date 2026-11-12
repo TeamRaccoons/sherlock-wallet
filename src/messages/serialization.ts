@@ -1,16 +1,9 @@
-
-function serializeMessage(message: Uint8Array): string {
-  return Buffer.from(message).toString('base64');
-}
-
-function deserializeMessage(wireMessage: string): Uint8Array {
-  return new Uint8Array(Buffer.from(wireMessage, 'base64'));
-}
+import { fromBase64, toBase64 } from './bytes';
 
 export function stringify(value: any): string {
   return JSON.stringify(value, (_key: string, value: any) => {
     if (value instanceof Uint8Array) {
-      return { type: 'Bytes', data: serializeMessage(value) };
+      return { type: 'Bytes', data: toBase64(value) };
     }
 
     return value;
@@ -20,7 +13,7 @@ export function stringify(value: any): string {
 export function parse(text: string) {
   return JSON.parse(text, (_key: string, value: any) => {
     if (value?.type === 'Bytes') {
-      return deserializeMessage(value.data);
+      return fromBase64(value.data);
     }
 
     return value;

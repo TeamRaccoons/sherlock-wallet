@@ -1,0 +1,6 @@
+# wasm64-unknown-unknown is tier 3: std is rebuilt with -Zbuild-std, which needs nightly.
+# Pinned for reproducible builds (rustc 1.97.0-nightly 36ba2c771 2026-04-23).
+[toolchain]
+channel = "nightly-2026-04-24"
+components = ["rust-src", "llvm-tools"]
+profile = "minimal"

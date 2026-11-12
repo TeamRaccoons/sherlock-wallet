@@ -1,4 +1,3 @@
-import jayson from 'jayson';
 import { parse, stringify } from './serialization';
 import type { Transport } from './transport';
 
@@ -12,65 +11,53 @@ export interface RPC {
   end: () => void;
 }
 
+// A minimal JSON-RPC 2.0 over the page / extension transports. It runs in every page the wallet
+// is injected into, so it stays dependency-free.
+type Message = { jsonrpc?: string; id?: string | number; method?: string; params?: any[]; result?: any; error?: any };
+
+const newId = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
+
+function read(dataOrEvent: any): Message | undefined {
+  const wire = dataOrEvent instanceof MessageEvent ? dataOrEvent.data : dataOrEvent;
+  if (typeof wire !== 'string') return undefined;
+  try {
+    const message = parse(wire);
+    return message && typeof message === 'object' && message.jsonrpc === '2.0' ? message : undefined;
+  } catch {
+    // The message is not for us.
+    return undefined;
+  }
+}
+
 export function createRPC(transport: Transport): RPC {
   const listeners: Callback[] = [];
 
   function callMethod(method: string, params: any[] = []) {
     return new Promise((resolve) => {
-      const request = jayson.Utils.request(method, params);
-
+      const id = newId();
       const handleResponse = (dataOrEvent: any) => {
-        const wireResponse = dataOrEvent instanceof MessageEvent ? dataOrEvent.data : dataOrEvent;
-        let response;
-        try {
-          response = parse(wireResponse);
-        } catch (err) {
-          // The message is not for us, ignore.
+        const response = read(dataOrEvent);
+        if (
+          !response ||
+          response.id !== id ||
+          response.method !== undefined ||
+          !('result' in response || 'error' in response)
+        )
           return;
-        }
-
-        if (!jayson.Utils.Response.isValidResponse(response)) {
-          return;
-        }
-
-        if (response.id !== request.id) {
-          return;
-        }
-
         transport.removeListener(handleResponse);
         resolve(response.result);
       };
       transport.addListener(handleResponse);
-
-      const wireRequest = stringify(request);
-      transport.write(wireRequest);
+      transport.write(stringify({ jsonrpc: '2.0', id, method, params }));
     });
   }
 
   function exposeMethod(method: string, listener: MethodCallback) {
     const handleRequest = async (dataOrEvent: any) => {
-      const wireRequest = dataOrEvent instanceof MessageEvent ? dataOrEvent.data : dataOrEvent;
-      let request;
-      try {
-        request = parse(wireRequest);
-      } catch (err) {
-        // The message is not for us, ignore.
-        return;
-      }
-
-      if (!jayson.Utils.Request.isValidRequest(request)) {
-        return;
-      }
-
-      if (request.method !== method) {
-        return;
-      }
-
-      const result = await listener(request.params);
-
-      const response = jayson.Utils.response(null, result, request.id);
-      const wireResponse = stringify(response);
-      transport.write(wireResponse);
+      const request = read(dataOrEvent);
+      if (!request || request.method !== method || request.id === undefined) return;
+      const result = await listener(request.params ?? []);
+      transport.write(stringify({ jsonrpc: '2.0', id: request.id, result: result ?? null }));
     };
 
     transport.addListener(handleRequest);

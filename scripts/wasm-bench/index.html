@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>WASM SVM bench</title>
+  </head>
+  <body style="font: 13px monospace; white-space: pre-wrap">
+    <div>Paste a base64 transaction (or ?tx=fixture.b64 to fetch one next to this page), set ?rpc=…</div>
+    <textarea id="tx" rows="6" cols="120"></textarea><br />
+    <button id="run">Simulate in WASM</button>
+    <div id="out"></div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

@@ -1,36 +1,20 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
+function read<T>(key: string, fallback: T): T {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? (JSON.parse(value) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+// Reads synchronously so the first render already has the stored value (the popup is never
+// server-rendered), which matters for anything that fires a request on mount.
 export function useLocalStorage<T>(key: string, defaultState: T): [T, React.Dispatch<React.SetStateAction<T>>] {
-  // To sync up with SSR/SSG, we need to make subsequent load on the client side.
-  const [firstLoadDone, setFirstLoadDone] = useState(false);
-
-  const [value, setValue] = useState<T>(defaultState);
+  const [value, setValue] = useState<T>(() => read(key, defaultState));
 
   useEffect(() => {
-    if (firstLoadDone) {
-      return;
-    }
-
-    try {
-      const value = localStorage.getItem(key);
-      if (value) {
-        setValue(JSON.parse(value) as T);
-      }
-    } catch (error) {
-      if (typeof window !== 'undefined') {
-        console.error(error);
-      }
-    } finally {
-      setFirstLoadDone(true);
-    }
-  }, [key, defaultState]);
-
-  const isFirstRender = useRef(true);
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
     try {
       if (value === null || value === undefined) {
         localStorage.removeItem(key);
@@ -38,11 +22,9 @@ export function useLocalStorage<T>(key: string, defaultState: T): [T, React.Disp
         localStorage.setItem(key, JSON.stringify(value));
       }
     } catch (error) {
-      if (typeof window !== 'undefined') {
-        console.error(error);
-      }
+      console.error(error);
     }
-  }, [value, firstLoadDone]);
+  }, [key, value]);
 
   return [value, setValue];
 }

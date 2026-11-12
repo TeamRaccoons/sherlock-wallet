@@ -1,10 +1,12 @@
+import { Pubkey } from '../pubkey';
 import type { FC } from 'react';
-import React, { useEffect, useMemo } from 'react';
-import AvailableAccounts from '../components/AvailableAccounts';
+import React, { useEffect, useMemo, useState } from 'react';
+import { AccountRow, isAddress } from '../components/Accounts';
 import { Account } from '../context/AccountsContext';
 import { useAccounts } from '../hooks/useAccounts';
+import { shortAddress } from '../inspect/format';
+import { Button, LetterAvatar } from '../kit/kit';
 import { rpc } from '../rpc';
-import InstantAddAccount from '../components/InstantAddAccount';
 
 let approveConnection: (accounts: Account[]) => void;
 let denyConnection: () => void;
@@ -20,42 +22,76 @@ rpc.exposeMethod('connect', async () => {
 });
 
 export const ApproveConnection: FC = () => {
-  const { accounts, changeConnectedAccount, connectedAddress } = useAccounts();
+  const { accounts, addAccount, changeConnectedAccount, connectedAddress } = useAccounts();
+  const origin = new URLSearchParams(window.location.search).get('origin')?.replace(/^https?:\/\//, '');
+  const [pasted, setPasted] = useState('');
 
-  // Pick first as default
+  // Default to the first address the first time accounts load.
   useEffect(() => {
-    changeConnectedAccount(accounts[0]);
-  }, [accounts, changeConnectedAccount]);
+    if (!connectedAddress && accounts[0]) changeConnectedAccount(accounts[0]);
+  }, [accounts, connectedAddress, changeConnectedAccount]);
 
-  const selectedAccount = useMemo(
+  const selected = useMemo(
     () => accounts.find((account) => account.address.toBase58() === connectedAddress),
     [accounts, connectedAddress]
   );
 
-  return (
-    <div className="w-[420px] overflow-x-hidden min-h-screen bg-slate-900 text-card-foreground shadow-sm flex flex-col space-y-6 p-6">
-      <h1 className="text-2xl font-semibold leading-none tracking-tight text-center">Approve Connection</h1>
-      <InstantAddAccount approveConnection={approveConnection} />
-      <AvailableAccounts disableDelete />
+  // Pasting a new address connects straight away as that address.
+  useEffect(() => {
+    const value = pasted.trim();
+    if (!isAddress(value)) return;
+    const account: Account = { label: shortAddress(value), address: new Pubkey(value) };
+    addAccount({ label: account.label, address: value });
+    approveConnection([account]);
+  }, [pasted, addAccount]);
 
-      <div className="sticky bottom-0 !mt-auto pt-4 grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          onClick={denyConnection}
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
-        >
-          Deny
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            selectedAccount && approveConnection([selectedAccount]);
-          }}
-          disabled={!connectedAddress}
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-        >
-          Approve
-        </button>
+  return (
+    <div className="flex min-h-screen flex-col">
+      <div className="flex-1 px-6 pt-8">
+        <div className="flex items-center gap-3">
+          <LetterAvatar text={origin ?? '?'} size={40} />
+          <div className="min-w-0">
+            <div className="truncate text-[15px] font-semibold">{origin ?? 'A dapp'}</div>
+            <div className="text-xs text-ink-2">wants to connect</div>
+          </div>
+        </div>
+        <h1 className="mt-6 text-[26px] font-bold leading-tight tracking-tight">Who do you want to be?</h1>
+        <p className="mt-1 text-sm text-ink-2">Tap an address to connect as it. Sherlock never signs anything.</p>
+
+        <div className="-mx-3 mt-5">
+          {accounts.map((account) => (
+            <AccountRow
+              key={account.address.toBase58()}
+              account={account}
+              selected={account.address.toBase58() === connectedAddress}
+              onSelect={() => {
+                // One tap: become this address and connect.
+                changeConnectedAccount(account);
+                approveConnection?.([account]);
+              }}
+            />
+          ))}
+        </div>
+
+        <input
+          className="field mono mt-4"
+          placeholder="Or paste any address"
+          value={pasted}
+          onChange={(e) => setPasted(e.target.value)}
+          autoFocus={!accounts.length}
+        />
+        {pasted && !isAddress(pasted) ? (
+          <p className="mt-2 text-xs text-neg">That is not a valid Solana address.</p>
+        ) : null}
+      </div>
+
+      <div className="sticky bottom-0 grid grid-cols-2 gap-3 border-t border-line bg-canvas px-6 py-4">
+        <Button kind="outline" size="lg" onClick={() => denyConnection?.()}>
+          Cancel
+        </Button>
+        <Button kind="dark" size="lg" disabled={!selected} onClick={() => selected && approveConnection([selected])}>
+          Connect
+        </Button>
       </div>
     </div>
   );
